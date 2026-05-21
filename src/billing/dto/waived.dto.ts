@@ -10,6 +10,7 @@ export class WaivedCheckRequestDto {
   operation: string;
 }
 
+/** Response-only DTO — validation decorators not required */
 export class WaivedCheckResponseDto {
   allowed: boolean;
   currentCount: number;

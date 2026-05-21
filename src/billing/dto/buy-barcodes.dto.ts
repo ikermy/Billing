@@ -37,5 +37,7 @@ export class BuyBarcodesDto {
   @IsNotEmpty()
   referrerId?: string;
 
+  @IsString()
+  @IsNotEmpty()
   userId!: string;
 }

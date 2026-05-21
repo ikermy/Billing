@@ -72,12 +72,14 @@ export class BlockRequestDto {
   context?: BlockContextDto;
 }
 
+/** Response-only DTO — validation decorators not required */
 export class SagaBlockedDto {
   subscription: number;
   credits: number;
   wallet: number;
 }
 
+/** Response-only DTO — validation decorators not required */
 export class BlockResponseDto {
   sagaId: string;
   blocked: SagaBlockedDto;

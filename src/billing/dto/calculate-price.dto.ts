@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CalculatePriceDto {
   @IsUUID()
@@ -18,5 +24,7 @@ export class CalculatePriceDto {
   @IsOptional()
   planCode: string;
 
+  @IsString()
+  @IsNotEmpty()
   userId: string;
 }

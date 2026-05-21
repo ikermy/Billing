@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
@@ -68,22 +69,45 @@ export class QuoteRequestDto {
   context?: QuoteContextDto;
 }
 
-// ── Response types aligned with BFF openapi.yaml ──────────────────────────────
+// ── Response / nested types aligned with BFF openapi.yaml ────────────────────
 
 export class SourceBreakdownDto {
+  @IsInt()
+  @Min(0)
   units: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   remaining?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   amount?: number;
 }
 
 export class QuoteBreakdownDto {
+  @ValidateNested()
+  @Type(() => SourceBreakdownDto)
   subscription: SourceBreakdownDto;
+
+  @ValidateNested()
+  @Type(() => SourceBreakdownDto)
   credits: SourceBreakdownDto;
+
+  @ValidateNested()
+  @Type(() => SourceBreakdownDto)
   wallet: SourceBreakdownDto;
 }
 
 export class ShortfallDto {
+  @IsInt()
+  @Min(0)
   units: number;
+
+  @IsNumber()
+  @Min(0)
   amountRequired: number;
 }
 
