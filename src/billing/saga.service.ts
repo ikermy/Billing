@@ -1,10 +1,3 @@
-/* eslint-disable
-   @typescript-eslint/no-unsafe-assignment,
-   @typescript-eslint/no-unsafe-call,
-   @typescript-eslint/no-unsafe-member-access,
-   @typescript-eslint/no-unsafe-argument,
-   @typescript-eslint/no-unsafe-return
-*/
 import {
   HttpException,
   HttpStatus,
@@ -292,7 +285,8 @@ export class SagaService {
       const walletCaptureCents = Math.round(remaining * unitPrice * 100);
       const walletCapture = walletCaptureCents / 100;
       const sagaWalletCents = Math.round(Number(saga.walletAmount) * 100);
-      const walletRelease = Math.max(0, sagaWalletCents - walletCaptureCents) / 100;
+      const walletRelease =
+        Math.max(0, sagaWalletCents - walletCaptureCents) / 100;
 
       const subRelease = saga.subscriptionAmount - subCapture;
       const credRelease = saga.creditsAmount - credCapture;

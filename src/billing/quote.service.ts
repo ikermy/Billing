@@ -35,7 +35,6 @@ export class QuoteService {
   async quote(request: QuoteRequestDto): Promise<IQuoteResult> {
     // Resolve effective count (BFF sends `units`; legacy callers use `count`)
     const requestedUnits: number = request.units ?? request.count ?? 1;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const creditType: CreditType = request.creditType ?? CreditType.BARCODE;
     const product = request.context?.product ?? 'default';
     const revision = request.context?.revision ?? request.revision ?? '';
@@ -46,7 +45,6 @@ export class QuoteService {
       revision,
     );
 
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
     const account = request.userId
       ? await this.prisma.account.findUnique({
           where: { userId: request.userId },
@@ -61,7 +59,6 @@ export class QuoteService {
     let remaining = requestedUnits;
 
     if (account) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
       const accountId = account.id;
       const subResult = await this.resolveSubscriptionUsage(
         accountId,
@@ -138,7 +135,6 @@ export class QuoteService {
     creditType: CreditType,
     remaining: number,
   ): Promise<{ used: number; remaining: number }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (creditType !== CreditType.BARCODE || remaining <= 0) {
       return { used: 0, remaining: 0 };
     }
@@ -177,7 +173,6 @@ export class QuoteService {
     defaultCurrency: string,
     remaining: number,
   ): Promise<{ units: number; totalCost: number; currency: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (creditType !== CreditType.BARCODE) {
       return { units: 0, totalCost: 0, currency: defaultCurrency };
     }

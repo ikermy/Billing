@@ -58,7 +58,6 @@ export class WaivedService {
   }
 
   async complete(request: WaivedOperationPayload): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const account: { id: string } | null = await this.prisma.account.findUnique(
       {
         where: { userId: request.userId },
