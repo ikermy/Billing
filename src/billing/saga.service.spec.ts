@@ -10,6 +10,7 @@ import { BillingProducer } from 'src/kafka/producers/billing.producer';
 import { BillingMetricsService } from 'src/shared/services/billing-metrics.service';
 import { QuoteService } from './quote.service';
 import { SagaService } from './saga.service';
+import { WaivedService } from './waived.service';
 import { QuoteSource } from './dto/quote.dto';
 
 describe('SagaService', () => {
@@ -81,6 +82,12 @@ describe('SagaService', () => {
     markCompletedByWalletBlock: jest.fn(),
     markCancelledByWalletBlock: jest.fn(),
   } as unknown as jest.Mocked<PaymentLedgerService>;
+
+  const waivedService = {
+    release: jest.fn(),
+    complete: jest.fn(),
+    checkAndReserve: jest.fn(),
+  } as unknown as jest.Mocked<WaivedService>;
 
   const billingProducer = {
     sagaCompleted: jest.fn(),

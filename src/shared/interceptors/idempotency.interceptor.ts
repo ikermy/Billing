@@ -82,8 +82,15 @@ export class IdempotencyInterceptor implements NestInterceptor {
     const cached = await this.redis.getJson<Record<string, unknown>>(cacheKey);
     if (cached) return cached;
 
-    const inFlight = await this.redis.getJson<string>(inflightKey);
-    if (inFlight) {
+    // Atomic SET NX — eliminates TOCTOU race between check and set.
+    // If two concurrent requests arrive simultaneously, only one wins the NX lock.
+    const acquired = await this.redis.setNx(
+      inflightKey,
+      '1',
+      this.IN_FLIGHT_TTL_SECONDS,
+    );
+    if (!acquired) {
+      // Another request is already in-flight with the same idempotency key
       throw new HttpException(
         {
           code: 'REQUEST_IN_FLIGHT',
@@ -94,7 +101,6 @@ export class IdempotencyInterceptor implements NestInterceptor {
       );
     }
 
-    await this.redis.set(inflightKey, '1', this.IN_FLIGHT_TTL_SECONDS);
     return null;
   }
 }

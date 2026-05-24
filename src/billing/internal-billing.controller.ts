@@ -17,7 +17,11 @@ import {
   ReleaseRequestDto,
   SagaService,
 } from './saga.service';
-import { WaivedCheckRequestDto } from './dto/waived.dto';
+import {
+  WaivedCheckRequestDto,
+  WaivedCompleteRequestDto,
+  WaivedReleaseRequestDto,
+} from './dto/waived.dto';
 import { WaivedService } from './waived.service';
 
 @Controller('internal/billing')
@@ -80,5 +84,27 @@ export class InternalBillingController {
   @Post('waived/check')
   async checkWaived(@Body() request: WaivedCheckRequestDto): Promise<unknown> {
     return await this.waivedService.checkAndReserve(request);
+  }
+
+  /** POST /internal/billing/waived/release — decrement waived counter on generation failure */
+  @Post('waived/release')
+  async releaseWaived(
+    @Body() request: WaivedReleaseRequestDto,
+  ): Promise<unknown> {
+    await this.waivedService.release(request.userId, request.operation);
+    return { released: true };
+  }
+
+  /** POST /internal/billing/waived/complete — audit $0 payment after successful free generation */
+  @Post('waived/complete')
+  async completeWaived(
+    @Body() request: WaivedCompleteRequestDto,
+  ): Promise<unknown> {
+    await this.waivedService.complete({
+      userId: request.userId,
+      operation: request.operation,
+      generationId: request.generationId,
+    });
+    return { completed: true };
   }
 }

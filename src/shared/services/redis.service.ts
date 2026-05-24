@@ -104,6 +104,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return result === 'OK';
   }
 
+  /**
+   * Atomic SET NX with TTL. Returns true if key was set (did not exist before).
+   * Use instead of getJson + set to avoid TOCTOU race conditions.
+   */
+  async setNx(
+    key: string,
+    value: unknown,
+    ttlSeconds: number,
+  ): Promise<boolean> {
+    const result = await this.getClient().set(
+      key,
+      JSON.stringify(value),
+      'EX',
+      ttlSeconds,
+      'NX',
+    );
+    return result === 'OK';
+  }
+
   async releaseLock(key: string, value: string): Promise<boolean> {
     const released = await this.getClient().eval(
       `

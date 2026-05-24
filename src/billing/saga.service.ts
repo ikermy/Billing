@@ -15,6 +15,8 @@ import {
   TransactionStatus,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PrismaService } from 'src/shared/services/prisma.service';
 import { CreditLedgerService } from 'src/shared/services/credit-ledger.service';
 import { WalletBalanceService } from 'src/shared/services/wallet-balance.service';
@@ -32,21 +34,42 @@ import { QuoteSource } from './dto/quote.dto';
 // ─── DTOs for new BFF endpoints ──────────────────────────────────────────────
 
 export class CaptureRequestDto {
+  @IsString()
   sagaId: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   units: number;
 }
 
 export class ReleaseRequestDto {
+  @IsString()
   sagaId: string;
+
   /** BFF may send units for the unreleased remainder */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   units?: number;
+
   /** optional backward-compatible reason */
+  @IsOptional()
+  @IsString()
   reason?: string;
 }
 
 export class BlockBatchRequestDto {
+  @IsString()
   userId: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
   count: number;
+
+  @IsString()
   batchId: string;
 }
 
@@ -722,6 +745,7 @@ export class SagaService {
         );
       }
     }
+
     return await this.prisma.billingSaga.update({
       where: { id: saga.id },
       data: { status: finalStatus, cancelledAt: new Date() },

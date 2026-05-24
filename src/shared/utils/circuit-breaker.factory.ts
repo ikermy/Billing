@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { HttpException, Logger } from '@nestjs/common';
 import CircuitBreaker from 'opossum';
 
 export interface ICircuitBreakerOptions {
@@ -29,6 +29,15 @@ export function createCircuitBreaker<TArgs extends unknown[], TResult>(
     resetTimeout: options.resetTimeout ?? 10_000,
     timeout: options.timeout ?? 5_000,
     volumeThreshold: options.volumeThreshold ?? 5,
+    // Клиентские ошибки (4xx) — не признак отказа инфраструктуры.
+    // Возвращаем true = CB игнорирует эту ошибку при подсчёте отказов.
+    errorFilter: (error: unknown): boolean => {
+      if (error instanceof HttpException) {
+        const status = error.getStatus();
+        return status >= 400 && status < 500;
+      }
+      return false;
+    },
   });
 
   cb.on('open', () =>
