@@ -466,6 +466,10 @@ export class SagaService {
     const transactionIds: string[] = [];
     const expiresAt = await this.getExpiresAt();
 
+    // Rollback stack for already-committed units — populated as each unit succeeds.
+    // If any unit fails, ALL previously created sagas are cancelled before throwing.
+    const batchRollbacks: Array<() => Promise<void>> = [];
+
     for (let i = 0; i < request.count; i++) {
       const sagaId = `${request.batchId}-tx-${i + 1}`;
       const subAmt = Math.round(subPerUnit);
@@ -531,19 +535,44 @@ export class SagaService {
           },
         });
 
+        // Unit committed — register its rollback in the stack
+        const capturedSagaId = sagaId;
+        batchRollbacks.push(async () => {
+          try {
+            await this.expireSaga(capturedSagaId, 'batch_rollback');
+          } catch (rollbackErr) {
+            this.logger.error(
+              `blockBatch rollback failed for sagaId=${capturedSagaId}: ${getErrorMessage(rollbackErr)}`,
+            );
+          }
+        });
+
         transactionIds.push(sagaId);
       } catch (err) {
         this.logger.error(
           `blockBatch unit ${i} failed: ${getErrorMessage(err)}`,
         );
+
+        // Rollback the CURRENT (partially created) unit
         if (walletBlockId) await this.tryCancelWalletBlock(walletBlockId);
         if (subscriptionId)
           await this.tryReleaseSubscription(subscriptionId, subAmt);
         if (credAmt > 0)
           await this.tryReleaseCredits(account.id, creditType, credAmt);
+
+        // Rollback ALL
+        if (batchRollbacks.length > 0) {
+          this.logger.warn(
+            `blockBatch: rolling back ${batchRollbacks.length} already-committed units for batchId=${request.batchId}`,
+          );
+          for (let j = batchRollbacks.length - 1; j >= 0; j--) {
+            await batchRollbacks[j]();
+          }
+        }
+
         // Break – rollback already-created sagas
         throw new HttpException(
-          `Failed to allocate resources for batch unit ${i + 1}`,
+          `Failed to allocate resources for batch unit ${i + 1}: ${getErrorMessage(err)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
